@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Créditos Académicos</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-image: url('f1.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #003366;
+      padding: 3px;
+      text-align: center;
+      position: relative;
+      font-size: 0.8em;
+    }
+    th {
+      background-color: rgba(173, 51, 51, 0.9);
+      color: white;
+    }
+    .highlight {
+      background-color: #ffffcc;
+    }
+    .highlight input,
+    .highlight textarea,
+    .highlight select {
+      background-color: #ffffcc;
+      text-align: center;
+      font-size: 0.85em;
+      padding: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #b23b3b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #a12e2e;
+    }
+    .alert {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #333;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 6px;
+      opacity: 0.95;
+      display: flex;
+      align-items: center;
+      z-index: 9999;
+      animation: fadeOut 5s forwards;
+    }
+    .alert.success {
+      background-color: #4CAF50;
+    }
+    .alert.error {
+      background-color: #f44336;
+    }
+    .alert i {
+      margin-right: 8px;
+    }
+    @keyframes fadeOut {
+      0% {opacity: 1;}
+      80% {opacity: 1;}
+      100% {opacity: 0; display: none;}
+    }
+    @keyframes flash-green {
+      0%, 100% { background-color: #c6f5c6; }
+      50% { background-color: #aaf0aa; }
+    }
+    @keyframes flash-red {
+      0%, 100% { background-color: #f8c0c0; }
+      50% { background-color: #f58888; }
+    }
+    .resumen-row {
+      font-weight: bold;
+      background-color: #f0f0f0;
+    }
+    .val {
+      font-weight: bold;
+    }
+    .tooltip-container {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+    .tooltip {
+      visibility: hidden;
+      width: 200px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.8em;
+    }
+    .tooltip-container:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+    th:nth-child(3), td:nth-child(3),
+    th:nth-child(4), td:nth-child(4),
+    th:nth-child(5), td:nth-child(5),
+    th:nth-child(6), td:nth-child(6),
+    th:nth-child(7), td:nth-child(7),
+    th:nth-child(8), td:nth-child(8),
+    th:nth-child(9), td:nth-child(9),
+    th:nth-child(10), td:nth-child(10),
+    th:nth-child(11), td:nth-child(11) {
+      width: 40px;  
+      min-width: 40px;
+      max-width: 40px;
+      padding: 3px 3px;
+    }
+    .semester-container {
+      margin-bottom: 40px;
+      border-bottom: 2px solid #b23b3b;
+      padding-bottom: 20px;
+    }
+    .semester-title {
+      font-weight: bold;
+      color: #b23b3b;
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+    .plan-estudios-container {
+      margin-top: 30px;
+      border-top: 2px solid #4CAF50;
+      padding-top: 20px;
+    }
+    .componentes-container {
+      margin-top: 20px;
+      border-top: 2px solid #4CAF50;
+      padding-top: 20px;
+    }
+    .plan-estudios-row {
+      font-weight: bold;
+      background-color: #d9ead3;
+    }
+    .hcd-row {
+      font-weight: bold;
+      background-color: #e6f3ff;
+    }
+    .weeks-selector {
+      background-color: #f0f0f0;
+      padding: 8px;
+      border-radius: 5px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .weeks-selector label {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    .weeks-selector select {
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .edit-mode {
+      border: 2px solid #4CAF50;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .edit-button {
+      background-color: #4CAF50;
+    }
+    .edit-button:hover {
+      background-color: #3e8e41;
+    }
+    .delete-semester-btn {
+      background-color: #f44336;
+    }
+    .delete-semester-btn:hover {
+      background-color: #d32f2f;
+    }
+    .leyendas-container {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      border-left: 4px solid #b23b3b;
+    }
+    .leyendas-container h3 {
+      color: #b23b3b;
+      margin-top: 15px;
+    }
+    .leyendas-container ul {
+      columns: 2;
+      column-gap: 30px;
+    }
+    .leyendas-container li {
+      margin-bottom: 8px;
+      break-inside: avoid;
+    }
+    @media (max-width: 768px) {
+      .leyendas-container ul {
+        columns: 1;
+      }
+    }
+    /* Estilos para la pantalla de inicio */
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      text-align: center;
+      padding: 20px;
+    }
+    #splash-screen h1 {
+      color: #b23b3b;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    #splash-screen h2 {
+      color: #003366;
+      font-size: 1.8em;
+      margin-bottom: 30px;
+    }
+    #splash-screen h3 {
+      color: #b23b3b;
+      font-size: 1.5em;
+      margin-bottom: 20px;
+    }
+    #splash-screen p {
+      max-width: 800px;
+      font-size: 1.2em;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    #splash-screen ul {
+      text-align: left;
+      max-width: 700px;
+      margin: 0 auto 30px;
+      font-size: 1.1em;
+    }
+    #splash-screen button {
+      padding: 12px 30px;
+      font-size: 1.2em;
+      background-color: #b23b3b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-top: 20px;
+    }
+    #splash-screen button:hover {
+      background-color: #8c2d2d;
+    }
+    #splash-screen .footer {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.9em;
+      color: #666;
+      width: 100%;
+      text-align: center;
+    }
+    .file-buttons {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .file-buttons input[type="file"] {
+      display: none;
+    }
+    .file-buttons label {
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin: 5px;
+      display: inline-block;
+    }
+    .file-buttons label:hover {
+      background-color: #3e8e41;
+    }
+  </style>
+</head>
+<body>
+<!-- Pantalla de inicio -->
+<div id="splash-screen">
+  <h1>UNIVERSIDAD DE PAMPLONA</h1>
+  <h2>Oficina de Autoevaluación y Acreditación Institucional</h2>
+  <h3>CALCULADORA DE CRÉDITOS ACADÉMICOS PREGRADO</h3>
+  
+  <p>
+    Bienvenido a esta herramienta diseñada para que los programas académicos puedan desarrollar 
+    sus planes de estudio de manera rápida y efectiva. Con esta calculadora podrás:
+  </p>
+  
+  <ul>
+    <li>Crear y gestionar asignaturas con sus respectivos créditos</li>
+    <li>Calcular automáticamente horas teóricas, prácticas e independientes</li>
+    <li>Organizar asignaturas por semestres</li>
+    <li>Generar el plan de estudios completo con resumen de créditos y horas</li>
+    <li>Exportar los resultados en formatos PDF y Excel</li>
+  </ul>
+  
+  <!-- Créditos separados -->
+  <p class="credits">
+    Ing. Andrés Narváez — &copy; Todos los derechos reservados. 2025
+  </p>
+  
+  <button onclick="hideSplashScreen()">INGRESAR</button>
+  
+  <div class="file-buttons">
+    <label for="load-file">Cargar progreso guardado</label>
+    <input type="file" id="load-file" accept=".json" onchange="loadProgress(this.files)">
+  </div>
+  
+  <div class="footer"></div>
+</div>
+
+<!-- Contenido principal (oculto inicialmente) -->
+<div class="container" id="main-content" style="display: none;">
+  <h2>Universidad de Pamplona<br>Reporte de Créditos Académicos</h2>
+  <div id="fechaGeneracion"></div>
+  
+  <div class="file-buttons">
+    <button onclick="saveProgress()">Guardar progreso</button>
+    <label for="load-file-main">Cargar progreso</label>
+    <input type="file" id="load-file-main" accept=".json" onchange="loadProgress(this.files)">
+    <button onclick="downloadAll()">Descargar PDF y Excel</button>
+  </div>
+  
+  <div id="semesters-container">
+    <!-- Los semestres se agregarán aquí dinámicamente -->
+  </div>
+
+  <div id="plan-estudios-container" class="plan-estudios-container" style="display:none">
+    <!-- El resumen del plan de estudios aparecerá aquí -->
+  </div>
+  
+  <div id="componentes-container" class="componentes-container" style="display:none">
+    <!-- El resumen de componentes aparecerá aquí -->
+  </div>
+
+  <div style="text-align:center" id="main-buttons">
+    <button onclick="addNewSemester()">Agregar nuevo semestre</button>
+    <button onclick="calculatePlanEstudios()" id="calculate-plan-btn" style="display:none">Calcular Plan de Estudios</button>
+  </div>
+
+  <!-- SECCIÓN DE LEYENDAS (solo para web) -->
+  <div id="leyendas-container" class="leyendas-container">
+    <h3>Instrucciones:</h3>
+    <p>Tenga en cuenta las sugerencias de cada celda. Para realizar el cálculo de horas académicas, digite la cantidad de créditos según sea el caso, teóricos y/o prácticos en la casilla de color amarillo. Seleccione el período académico para los casos especiales diferentes a 16 semanas.</p>
+    
+    <h3>Leyendas:</h3>
+    <ul>
+      <li><strong>T</strong>: Teórico - Horas de trabajo con acompañamiento directo con el docente</li>
+      <li><strong>P</strong>: Práctico - Horas de trabajo con acompañamiento directo con el docente</li>
+      <li><strong>HT</strong>: Horas Teóricas</li>
+      <li><strong>HP</strong>: Horas Prácticas</li>
+      <li><strong>HCI</strong>: Horas de Contacto Indirecto semestrales</li>
+      <li><strong>HTS</strong>: Horas Totales Semestrales</li>
+      <li><strong>HCD</strong>: Horas de Contacto Directo (HT + HP)</li>
+      <li><strong>CSH</strong>: Componente de Formación Social y Humanística</li>
+      <li><strong>CFB</strong>: Componente de Formación Básica</li>
+      <li><strong>CFP</strong>: Componente de Formación Profesional</li>
+      <li><strong>CP</strong>: Componente de Profundización</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+let rowIndex = 0;
+let semesterCount = 0;
+let semesterTables = [];
+let planEstudiosGenerated = false;
+let componentesGenerated = false;
+
+// Función para ocultar la pantalla de inicio
+function hideSplashScreen() {
+  document.getElementById('splash-screen').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  // Iniciar con un semestre al ingresar
+  if (semesterCount === 0) {
+    addNewSemester();
+  }
+  updateFechaGeneracion();
+}
+
+// Mostrar fecha actual
+function updateFechaGeneracion() {
+  document.getElementById('fechaGeneracion').textContent = `Generado el: ${new Date().toLocaleDateString()}`;
+}
+
+function showAlert(message, type) {
+  const alert = document.createElement("div");
+  alert.className = `alert ${type}`;
+  alert.innerHTML = `<i>${type === "success" ? "✔️" : "⚠️"}</i> ${message}`;
+  document.body.appendChild(alert);
+  setTimeout(() => alert.remove(), 5000);
+}
+
+function addNewSemester() {
+  semesterCount++;
+  const semestersContainer = document.getElementById('semesters-container');
+  
+  // Crear contenedor del semestre
+  const semesterDiv = document.createElement('div');
+  semesterDiv.className = 'semester-container';
+  semesterDiv.id = `semester-${semesterCount}`;
+  
+  // Agregar título del semestre
+  const title = document.createElement('div');
+  title.className = 'semester-title';
+  title.textContent = `Semestre ${semesterCount}`;
+  semesterDiv.appendChild(title);
+  
+  // Agregar selector de semanas con tooltip (solo 16 o 18 semanas)
+  const weeksSelector = document.createElement('div');
+  weeksSelector.className = 'weeks-selector';
+  weeksSelector.innerHTML = `
+    <label for="weeks-${semesterCount}">Período Académico (semanas): </label>
+    <div class="tooltip-container">
+      <select id="weeks-${semesterCount}" class="weeks-input">
+        <option value="16">16 semanas</option>
+        <option value="18">18 semanas</option>
+      </select>
+      <span class="tooltip">Número de semanas del período académico (16 o 18 semanas por semestre)</span>
+    </div>
+  `;
+  semesterDiv.appendChild(weeksSelector);
+  
+  // Crear tabla para el semestre con nueva columna de Componente y Requisito
+  const table = document.createElement('table');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Código Asignatura</th>
+        <th>Asignatura</th>
+        <th>Crédito</th>
+        <th>T</th>
+        <th>P</th>
+        <th>Componente</th>
+        <th>HT Sem</th>
+        <th>HP Sem</th>
+        <th>HCI</th>
+        <th>HTS</th>
+        <th>Requisito</th>
+        <th>Crédito Val.</th>
+        <th>Eliminar</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+  table.id = `tabla-${semesterCount}`;
+  semesterDiv.appendChild(table);
+  
+  // Agregar botones del semestre
+  const buttonsDiv = document.createElement('div');
+  buttonsDiv.style.textAlign = 'center';
+  buttonsDiv.innerHTML = `
+    <button onclick="addRow(${semesterCount})">Agregar nueva materia</button>
+    <button onclick="generateSemester(${semesterCount})">Generar semestre</button>
+    <button onclick="calculateAll(${semesterCount})">Calcular</button>
+    <button onclick="deleteSemester(${semesterCount})" class="delete-semester-btn">Eliminar Semestre</button>
+  `;
+  semesterDiv.appendChild(buttonsDiv);
+  
+  // Agregar semestre al contenedor
+  semestersContainer.appendChild(semesterDiv);
+  
+  // Guardar referencia a la tabla
+  semesterTables.push({
+    id: semesterCount,
+    table: table,
+    generated: false,
+    totalRow: null
+  });
+  
+  showAlert(`Semestre ${semesterCount} creado. Agrega materias.`, "success");
+  
+  // Mostrar botón de Plan de Estudios si hay más de un semestre
+  if (semesterCount > 1) {
+    document.getElementById('calculate-plan-btn').style.display = 'inline-block';
+  }
+  
+  updateFechaGeneracion();
+}
+
+function deleteSemester(semesterId) {
+  if (semesterTables.length <= 1) {
+    showAlert("Debe haber al menos un semestre.", "error");
+    return;
+  }
+  
+  if (confirm(`¿Está seguro que desea eliminar el Semestre ${semesterId}? Esta acción no se puede deshacer.`)) {
+    // Eliminar el semestre del DOM
+    const semesterDiv = document.getElementById(`semester-${semesterId}`);
+    if (semesterDiv) {
+      semesterDiv.remove();
+    }
+    
+    // Eliminar el semestre del array
+    const index = semesterTables.findIndex(s => s.id === semesterId);
+    if (index !== -1) {
+      semesterTables.splice(index, 1);
+    }
+    
+    // Renumerar los semestres restantes
+    const remainingSemesters = document.querySelectorAll('.semester-container');
+    remainingSemesters.forEach((semester, i) => {
+      const newId = i + 1;
+      semester.id = `semester-${newId}`;
+      semester.querySelector('.semester-title').textContent = `Semestre ${newId}`;
+      
+      // Actualizar IDs en los botones
+      const buttons = semester.querySelectorAll('button');
+      buttons[0].setAttribute('onclick', `addRow(${newId})`);
+      buttons[1].setAttribute('onclick', `generateSemester(${newId})`);
+      buttons[2].setAttribute('onclick', `calculateAll(${newId})`);
+      buttons[3].setAttribute('onclick', `deleteSemester(${newId})`);
+      
+      // Actualizar en el array
+      const semesterInArray = semesterTables[i];
+      if (semesterInArray) {
+        semesterInArray.id = newId;
+      }
+    });
+    
+    // Actualizar contador
+    semesterCount = semesterTables.length;
+    
+    // Actualizar visibilidad del botón de Plan de Estudios
+    document.getElementById('calculate-plan-btn').style.display = semesterCount > 1 ? 'inline-block' : 'none';
+    
+    // Si había plan de estudios, limpiarlo
+    if (planEstudiosGenerated) {
+      document.getElementById('plan-estudios-container').style.display = 'none';
+      planEstudiosGenerated = false;
+    }
+    
+    showAlert(`Semestre ${semesterId} eliminado correctamente.`, "success");
+    updateFechaGeneracion();
+  }
+}
+
+function addRow(semesterId) {
+  const semester = semesterTables.find(s => s.id === semesterId);
+  if (semester.generated && !document.getElementById(`semester-${semesterId}`).classList.contains('edit-mode')) {
+    showAlert("No se pueden agregar más materias después de generar el semestre.", "error");
+    return;
+  }
+  
+  const tbody = semester.table.querySelector('tbody');
+  const row = tbody.insertRow();
+  row.id = `row-${semesterId}-${++rowIndex}`;
+  row.innerHTML = `
+    <td class="highlight">
+      <div class="tooltip-container">
+        <input type="text" placeholder="Opcional">
+        <span class="tooltip">Código de la asignatura (opcional)</span>
+      </div>
+    </td>
+    <td class="highlight">
+      <div class="tooltip-container">
+        <textarea rows="2">Nombre asignatura</textarea>
+        <span class="tooltip">Nombre completo de la asignatura según el plan de estudios</span>
+      </div>
+    </td>
+    <td class="highlight">
+      <div class="tooltip-container">
+        <input type="number" value="1">
+        <span class="tooltip">Número de créditos académicos de la asignatura (1 crédito = 48 horas totales de trabajo)</span>
+      </div>
+    </td>
+    <td class="highlight">
+      <div class="tooltip-container">
+        <input type="number" value="0">
+        <span class="tooltip">Asignar creditos Teoricos para la asignatura (T)</span>
+      </div>
+    </td>
+    <td class="highlight">
+      <div class="tooltip-container">
+        <input type="number" value="0">
+        <span class="tooltip">asignar creditos practicos para la asignatura (P).</span>
+      </div>
+    </td>
+    <td class="highlight">
+      <div class="tooltip-container">
+        <select>
+          <option value="CSH">CSH</option>
+          <option value="CFB">CFB</option>
+          <option value="CFP">CFP</option>
+          <option value="CP">CP</option>
+        </select>
+        <span class="tooltip">Seleccione el componente de formación de la asignatura</span>
+      </div>
+    </td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td class="highlight">
+      <div class="tooltip-container">
+        <input type="text" placeholder="Opcional">
+        <span class="tooltip">Requisitos de la asignatura (opcional)</span>
+      </div>
+    </td>
+    <td class="val"></td>
+    <td><button onclick="deleteRow(this, ${semesterId})">❌</button></td>
+  `;
+  row.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('input', () => calculateRow(row, semesterId));
+  });
+  calculateRow(row, semesterId);
+  showAlert("Materia agregada correctamente.", "success");
+}
+
+function calculateRow(row, semesterId) {
+  const semester = semesterTables.find(s => s.id === semesterId);
+  const weeksInput = document.getElementById(`weeks-${semesterId}`);
+  const weeks = parseFloat(weeksInput.value) || 16;
+  
+  const inputs = row.querySelectorAll('input, textarea, select');
+  const credit = parseFloat(inputs[2].value) || 1;
+  const t = parseFloat(inputs[3].value) || 0;
+  const p = parseFloat(inputs[4].value) || 0;
+  const ht = t * weeks;
+  const hp = p * 3 * weeks;
+  const hi = t * 2 * weeks;
+  const hts = ht + hp + hi;
+  const credval = Math.round(hts / (weeks * 3));
+  
+  row.cells[6].textContent = ht;
+  row.cells[7].textContent = hp;
+  row.cells[8].textContent = hi;
+  row.cells[9].textContent = hts;
+  const valCell = row.cells[11];
+  valCell.textContent = credval;
+  valCell.style.animation = "none";
+  void valCell.offsetWidth;
+  valCell.style.animation = `flash-${credval === credit ? 'green' : 'red'} 1s`;
+  valCell.style.backgroundColor = credval === credit ? '#c6f5c6' : '#f8c0c0';
+}
+
+function calculateAll(semesterId) {
+  let allValid = true;
+  const semester = semesterTables.find(s => s.id === semesterId);
+  const tbody = semester.table.querySelector('tbody');
+  
+  tbody.querySelectorAll("tr").forEach(row => {
+    if (!row.id || !row.id.includes(`row-${semesterId}-`)) return;
+    calculateRow(row, semesterId);
+    const inputs = row.querySelectorAll('input, textarea');
+    const name = inputs[1].value.trim();
+    const credit = parseFloat(inputs[2].value) || 1;
+    const valid = parseFloat(row.cells[11].textContent);
+    if (name === '' || credit !== valid) allValid = false;
+  });
+  
+  showAlert(allValid ? "Todos los cálculos son correctos." : "Hay asignaturas con errores de cálculo.", allValid ? "success" : "error");
+  return allValid;
+}
+
+function deleteRow(button, semesterId) {
+  const semester = semesterTables.find(s => s.id === semesterId);
+  const row = button.closest('tr');
+  row.remove();
+  showAlert("Fila eliminada.", "success");
+  
+  // Si hay fila de resumen, recalcularla
+  if (semester.generated && semester.totalRow) {
+    // Si era la última fila, quitar el estado de generado
+    const tbody = semester.table.querySelector('tbody');
+    const materiaRows = tbody.querySelectorAll("tr[id^='row-']");
+    if (materiaRows.length === 0) {
+      semester.generated = false;
+      semester.totalRow.remove();
+      semester.totalRow = null;
+      document.getElementById(`semester-${semesterId}`).classList.remove('edit-mode');
+      
+      // Eliminar botón de edición si existe
+      const editButton = document.querySelector(`#semester-${semesterId} .edit-button`);
+      if (editButton) editButton.remove();
+    } else {
+      generateSemester(semesterId);
+    }
+  }
+}
+
+function generateSemester(semesterId) {
+  const semester = semesterTables.find(s => s.id === semesterId);
+  if (!calculateAll(semesterId)) {
+    showAlert("Corrija los errores antes de generar el semestre.", "error");
+    return;
+  }
+  
+  semester.generated = true;
+  
+  // Eliminar filas de resumen existentes si las hay
+  const tbody = semester.table.querySelector('tbody');
+  const existingSummaryRows = tbody.querySelectorAll('.resumen-row, .hcd-row');
+  existingSummaryRows.forEach(row => row.remove());
+  
+  const rows = Array.from(tbody.querySelectorAll("tr")).filter(row => row.id && row.id.includes(`row-${semesterId}-`));
+  
+  if (rows.length === 0) {
+    showAlert("No hay materias para generar el semestre.", "error");
+    semester.generated = false;
+    return;
+  }
+  
+  const weeksInput = document.getElementById(`weeks-${semesterId}`);
+  const weeks = parseFloat(weeksInput.value) || 16;
+  
+  let credit = 0, t = 0, p = 0;
+  let ht = 0, hp = 0, hi = 0, hts = 0;
+  
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('input, textarea');
+    credit += parseFloat(inputs[2].value) || 0;
+    t += parseFloat(inputs[3].value) || 0;
+    p += parseFloat(inputs[4].value) || 0;
+    ht += parseFloat(row.cells[6].textContent) || 0;
+    hp += parseFloat(row.cells[7].textContent) || 0;
+    hi += parseFloat(row.cells[8].textContent) || 0;
+    hts += parseFloat(row.cells[9].textContent) || 0;
+  });
+  
+  semester.totalRow = tbody.insertRow();
+  semester.totalRow.className = 'resumen-row';
+  semester.totalRow.innerHTML = `
+    <td>${weeks}</td>
+    <td>Resumen Semestre ${semesterId}</td>
+    <td>${credit}</td>
+    <td>${t}</td>
+    <td>${p}</td>
+    <td>-</td>
+    <td>${ht}</td>
+    <td>${hp}</td>
+    <td>${hi}</td>
+    <td>${hts}</td>
+    <td>-</td>
+    <td class="val">${Math.round(hts / (weeks * 3))}</td>
+    <td>-</td>
+  `;
+  
+  // Agregar o actualizar botón de edición
+  const buttonsDiv = document.querySelector(`#semester-${semesterId} div`);
+  let editButton = buttonsDiv.querySelector('.edit-button');
+  
+  if (!editButton) {
+    editButton = document.createElement('button');
+    editButton.className = 'edit-button';
+    editButton.textContent = 'Editar Semestre';
+    editButton.onclick = () => toggleEditMode(semesterId);
+    buttonsDiv.appendChild(editButton);
+  }
+  
+  // Salir del modo edición si estaba activo
+  document.getElementById(`semester-${semesterId}`).classList.remove('edit-mode');
+  
+  showAlert(`Resumen del semestre ${semesterId} generado.`, "success");
+}
+
+function toggleEditMode(semesterId) {
+  const semesterDiv = document.getElementById(`semester-${semesterId}`);
+  const semester = semesterTables.find(s => s.id === semesterId);
+  
+  if (semesterDiv.classList.contains('edit-mode')) {
+    // Salir del modo edición
+    semesterDiv.classList.remove('edit-mode');
+    // Regenerar el semestre
+    generateSemester(semesterId);
+    showAlert("Modo edición desactivado. Semestre regenerado.", "success");
+  } else {
+    // Entrar en modo edición
+    semesterDiv.classList.add('edit-mode');
+    semester.generated = false;
+    
+    // Eliminar filas de resumen
+    const tbody = semester.table.querySelector('tbody');
+    const existingSummaryRows = tbody.querySelectorAll('.resumen-row, .hcd-row');
+    existingSummaryRows.forEach(row => row.remove());
+    
+    // Eliminar botón de edición temporalmente
+    const editButton = document.querySelector(`#semester-${semesterId} .edit-button`);
+    if (editButton) editButton.remove();
+    
+    showAlert("Modo edición activado. Puede agregar nuevas materias.", "success");
+  }
+}
+
+function recalculateAll() {
+  // Recalcular todos los semestres
+  semesterTables.forEach(semester => {
+    if (semester.generated) {
+      generateSemester(semester.id);
+    }
+  });
+  
+  // Recalcular plan de estudios si hay más de un semestre
+  if (semesterTables.length > 1 && planEstudiosGenerated) {
+    calculatePlanEstudios();
+  }
+}
+
+function calculatePlanEstudios() {
+  if (semesterTables.length < 2) {
+    showAlert("Necesitas al menos 2 semestres para calcular el plan de estudios.", "error");
+    return;
+  }
+  
+  // Verificar que todos los semestres estén generados
+  const allGenerated = semesterTables.every(s => s.generated);
+  if (!allGenerated) {
+    showAlert("Todos los semestres deben estar generados primero.", "error");
+    return;
+  }
+  
+  const planContainer = document.getElementById('plan-estudios-container');
+  planContainer.style.display = 'block';
+  
+  if (planEstudiosGenerated) {
+    planContainer.querySelector('table')?.remove();
+  }
+  
+  let totalCredit = 0, totalT = 0, totalP = 0;
+  let totalHt = 0, totalHp = 0, totalHi = 0, totalHts = 0;
+  let totalWeeks = 0;
+  
+  semesterTables.forEach(semester => {
+    const row = semester.totalRow;
+    totalCredit += parseFloat(row.cells[2].textContent) || 0;
+    totalT += parseFloat(row.cells[3].textContent) || 0;
+    totalP += parseFloat(row.cells[4].textContent) || 0;
+    totalHt += parseFloat(row.cells[6].textContent) || 0;
+    totalHp += parseFloat(row.cells[7].textContent) || 0;
+    totalHi += parseFloat(row.cells[8].textContent) || 0;
+    totalHts += parseFloat(row.cells[9].textContent) || 0;
+    totalWeeks += parseFloat(row.cells[0].textContent) || 0;
+  });
+  
+  const avgWeeks = totalWeeks / semesterTables.length;
+  const table = document.createElement('table');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Periodos</th>
+        <th>Descripción</th>
+        <th>Crédito</th>
+        <th>T</th>
+        <th>P</th>
+        <th>Componente</th>
+        <th>HT Sem</th>
+        <th>HP Sem</th>
+        <th>HCI</th>
+        <th>HTS</th>
+        <th>Requisito</th>
+        <th>Crédito Val.</th>
+        <th>-</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="plan-estudios-row">
+        <td>${semesterTables.length}</td>
+        <td>Plan de Estudios Completo</td>
+        <td>${totalCredit}</td>
+        <td>${totalT}</td>
+        <td>${totalP}</td>
+        <td>-</td>
+        <td>${totalHt}</td>
+        <td>${totalHp}</td>
+        <td>${totalHi}</td>
+        <td>${totalHts}</td>
+        <td>-</td>
+        <td class="val">${semesterTables.reduce((sum, semester) => sum + parseInt(semester.totalRow.cells[11].textContent), 0)}</td>
+        <td>-</td>
+      </tr>
+      <tr class="hcd-row">
+        <td colspan="6">HCD (Horas de Contacto Directo)</td>
+        <td colspan="2">${totalHt + totalHp}</td>
+        <td colspan="5">-</td>
+      </tr>
+    </tbody>
+  `;
+  
+  planContainer.innerHTML = '';
+  planContainer.appendChild(table);
+  planEstudiosGenerated = true;
+  
+  // Calcular componentes
+  calculateComponentes();
+  
+  showAlert("Plan de estudios calculado correctamente.", "success");
+}
+
+function calculateComponentes() {
+  const componentesContainer = document.getElementById('componentes-container');
+  componentesContainer.style.display = 'block';
+  componentesContainer.innerHTML = '<h3>Distribución por Componentes de Formación</h3>';
+  
+  // Contar asignaturas por componente
+  const componentes = {
+    'CSH': { count: 0, creditos: 0 },
+    'CFB': { count: 0, creditos: 0 },
+    'CFP': { count: 0, creditos: 0 },
+    'CP': { count: 0, creditos: 0 }
+  };
+  
+  // Recorrer todas las materias de todos los semestres
+  semesterTables.forEach(semester => {
+    const tbody = semester.table.querySelector('tbody');
+    
+    // Obtener solo las filas de materias (no las filas de resumen)
+    const materiasRows = Array.from(tbody.querySelectorAll("tr")).filter(row => 
+      row.id && row.id.includes(`row-${semester.id}-`)
+    );
+    
+    materiasRows.forEach(row => {
+      // Obtener todos los inputs de la fila
+      const inputs = row.querySelectorAll('input');
+      
+      // El select del componente está en la posición 5 (índice 0 del querySelectorAll('select'))
+      const componenteSelect = row.querySelectorAll('select')[0];
+      
+      if (componenteSelect && inputs.length >= 5) {
+        const componente = componenteSelect.value;
+        
+        // Obtener créditos TOTALES directamente del campo "Crédito" - inputs[1]
+        const creditosTotales = parseFloat(inputs[1].value) || 0;
+        
+        if (componentes[componente]) {
+          componentes[componente].count++;
+          componentes[componente].creditos += creditosTotales;
+        }
+      }
+    });
+  });
+  
+  // Calcular totales
+  const totalAsignaturas = Object.values(componentes).reduce((sum, c) => sum + c.count, 0);
+  const totalCreditos = Object.values(componentes).reduce((sum, c) => sum + c.creditos, 0);
+  
+  // Crear tabla de componentes
+  const table = document.createElement('table');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Componente</th>
+        <th>N° Asignaturas</th>
+        <th>% Asignaturas</th>
+        <th>Total Créditos</th>
+        <th>% Créditos</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${Object.entries(componentes).map(([key, value]) => `
+        <tr>
+          <td>${key}</td>
+          <td>${value.count}</td>
+          <td>${totalAsignaturas > 0 ? ((value.count / totalAsignaturas) * 100).toFixed(2) + '%' : '0%'}</td>
+          <td>${value.creditos}</td>
+          <td>${totalCreditos > 0 ? ((value.creditos / totalCreditos) * 100).toFixed(2) + '%' : '0%'}</td>
+        </tr>
+      `).join('')}
+      <tr class="resumen-row">
+        <td>TOTAL</td>
+        <td>${totalAsignaturas}</td>
+        <td>100%</td>
+        <td>${totalCreditos}</td>
+        <td>100%</td>
+      </tr>
+    </tbody>
+  `;
+  
+  componentesContainer.appendChild(table);
+  componentesGenerated = true;
+}
+
+function validateBeforeExport() {
+  // Recalcular todo primero
+  recalculateAll();
+  
+  // Verificar que todos los semestres estén generados
+  const allGenerated = semesterTables.every(s => s.generated);
+  if (!allGenerated) {
+    showAlert("Todos los semestres deben estar generados primero.", "error");
+    return false;
+  }
+
+  // Verificar cálculos
+  let allValid = true;
+  semesterTables.forEach(semester => {
+    const semesterId = semester.id;
+    const tbody = semester.table.querySelector('tbody');
+    
+    tbody.querySelectorAll("tr").forEach(row => {
+      if (!row.id || !row.id.includes(`row-${semesterId}-`)) return;
+      
+      const inputs = row.querySelectorAll('input, textarea');
+      const name = inputs[1].value.trim();
+      const credit = parseFloat(inputs[2].value) || 1;
+      const valid = parseFloat(row.cells[11].textContent);
+      
+      if (name === '' || credit !== valid) {
+        allValid = false;
+        row.cells[11].style.animation = "flash-red 1s";
+        row.cells[11].style.backgroundColor = '#f8c0c0';
+      }
+    });
+  });
+
+  if (!allValid) {
+    showAlert("Hay errores en los cálculos. Corríjalos antes de exportar.", "error");
+    return false;
+  }
+
+  // Validar plan de estudios si hay más de un semestre
+  if (semesterTables.length > 1 && !planEstudiosGenerated) {
+    showAlert("Debe calcular el plan de estudios primero.", "error");
+    return false;
+  }
+
+  return true;
+}
+
+function downloadExcel() {
+  if (!validateBeforeExport()) return;
+  
+  // Crear un nuevo libro de Excel
+  const wb = XLSX.utils.book_new();
+  
+  // Para cada semestre, crear una hoja
+  semesterTables.forEach(semester => {
+    const tableCopy = semester.table.cloneNode(true);
+    
+    // Eliminar columna Eliminar
+    const ths = tableCopy.querySelectorAll('th');
+    if (ths.length > 12) ths[ths.length-1].remove();
+    
+    tableCopy.querySelectorAll('tr').forEach(tr => {
+      const tds = tr.querySelectorAll('td');
+      if (tds.length > 12) tds[tds.length-1].remove();
+    });
+    
+    // Limpiar la tabla copiada
+    const inputs = tableCopy.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+      const td = input.parentElement.parentElement;
+      if (input.tagName === 'SELECT') {
+        td.textContent = input.options[input.selectedIndex].text;
+      } else {
+        td.textContent = input.value;
+      }
+      td.classList.remove('highlight');
+    });
+    
+    // Convertir la tabla a hoja de Excel
+    const ws = XLSX.utils.table_to_sheet(tableCopy);
+    
+    // Aplicar estilos
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cell_address = {c:C, r:R};
+        const cell_ref = XLSX.utils.encode_cell(cell_address);
+        
+        if (!ws[cell_ref]) continue;
+        
+        ws[cell_ref].s = {
+          border: {
+            top: {style: "thin", color: {rgb: "000000"}},
+            bottom: {style: "thin", color: {rgb: "000000"}},
+            left: {style: "thin", color: {rgb: "000000"}},
+            right: {style: "thin", color: {rgb: "000000"}}
+          },
+          alignment: { horizontal: "center", vertical: "center" }
+        };
+        
+        // Estilo para encabezados
+        if (R === 0) {
+          ws[cell_ref].s.fill = {fgColor: {rgb: "AD3333"}};
+          ws[cell_ref].s.font = {color: {rgb: "FFFFFF"}, bold: true};
+        }
+        
+        // Estilo para fila de resumen
+        if (R === range.e.r) {
+          ws[cell_ref].s.fill = {fgColor: {rgb: "F0F0F0"}};
+          ws[cell_ref].s.font = {bold: true};
+        }
+      }
+    }
+    
+    // Añadir la hoja al libro
+    XLSX.utils.book_append_sheet(wb, ws, `Semestre ${semester.id}`);
+  });
+  
+  // Si hay plan de estudios, añadirlo como última hoja
+  if (planEstudiosGenerated) {
+    const planTable = document.querySelector('.plan-estudios-container table').cloneNode(true);
+    
+    // Eliminar columna Eliminar
+    const ths = planTable.querySelectorAll('th');
+    if (ths.length > 12) ths[ths.length-1].remove();
+    
+    planTable.querySelectorAll('tr').forEach(tr => {
+      const tds = tr.querySelectorAll('td');
+      if (tds.length > 12) tds[tds.length-1].remove();
+    });
+    
+    const ws = XLSX.utils.table_to_sheet(planTable);
+    
+    // Aplicar estilos
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cell_address = {c:C, r:R};
+        const cell_ref = XLSX.utils.encode_cell(cell_address);
+        
+        if (!ws[cell_ref]) continue;
+        
+        ws[cell_ref].s = {
+          border: {
+            top: {style: "thin", color: {rgb: "000000"}},
+            bottom: {style: "thin", color: {rgb: "000000"}},
+            left: {style: "thin", color: {rgb: "000000"}},
+            right: {style: "thin", color: {rgb: "000000"}}
+          },
+          alignment: { horizontal: "center", vertical: "center" },
+          fill: {fgColor: {rgb: "D9EAD3"}},
+          font: {bold: true}
+        };
+        
+        // Estilo para fila HCD
+        if (R === range.e.r) {
+          ws[cell_ref].s.fill = {fgColor: {rgb: "E6F3FF"}};
+        }
+      }
+    }
+    
+    XLSX.utils.book_append_sheet(wb, ws, "Plan Estudios");
+  }
+  
+  // Si hay componentes, añadirlos como otra hoja
+  if (componentesGenerated) {
+    const compTable = document.querySelector('.componentes-container table').cloneNode(true);
+    const ws = XLSX.utils.table_to_sheet(compTable);
+    
+    // Aplicar estilos
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cell_address = {c:C, r:R};
+        const cell_ref = XLSX.utils.encode_cell(cell_address);
+        
+        if (!ws[cell_ref]) continue;
+        
+        ws[cell_ref].s = {
+          border: {
+            top: {style: "thin", color: {rgb: "000000"}},
+            bottom: {style: "thin", color: {rgb: "000000"}},
+            left: {style: "thin", color: {rgb: "000000"}},
+            right: {style: "thin", color: {rgb: "000000"}}
+          },
+          alignment: { horizontal: "center", vertical: "center" }
+        };
+        
+        // Estilo para encabezados
+        if (R === 0) {
+          ws[cell_ref].s.fill = {fgColor: {rgb: "4CAF50"}};
+          ws[cell_ref].s.font = {color: {rgb: "FFFFFF"}, bold: true};
+        }
+        
+        // Estilo para fila de resumen
+        if (R === range.e.r) {
+          ws[cell_ref].s.fill = {fgColor: {rgb: "F0F0F0"}};
+          ws[cell_ref].s.font = {bold: true};
+        }
+      }
+    }
+    
+    XLSX.utils.book_append_sheet(wb, ws, "Componentes");
+  }
+  
+  // Descargar el archivo
+  XLSX.writeFile(wb, "reporte_creditos.xlsx");
+  showAlert("Excel descargado correctamente.", "success");
+}
+
+function downloadPDF() {
+  if (!validateBeforeExport()) return;
+
+  // Crear un elemento contenedor para todo el contenido
+  const element = document.createElement('div');
+  element.style.width = '100%';
+  
+  // Agregar título y fecha
+  const title = document.createElement('h2');
+  title.textContent = 'Universidad de Pamplona - Reporte de Créditos Académicos';
+  title.style.textAlign = 'center';
+  element.appendChild(title);
+  
+  const date = document.createElement('div');
+  date.textContent = document.getElementById('fechaGeneracion').textContent;
+  date.style.textAlign = 'center';
+  date.style.marginBottom = '20px';
+  element.appendChild(date);
+  
+  // Clonar todos los semestres
+  const semestersContainer = document.getElementById('semesters-container').cloneNode(true);
+  
+  // Eliminar botones y columna Eliminar de cada semestre
+  semestersContainer.querySelectorAll('.semester-container').forEach(semester => {
+    // Eliminar botones del semestre
+    semester.querySelectorAll('button').forEach(btn => btn.remove());
+    
+    // Eliminar columna Eliminar de las tablas
+    semester.querySelectorAll('table').forEach(table => {
+      // Eliminar encabezado
+      const ths = table.querySelectorAll('th');
+      if (ths.length > 12) ths[ths.length-1].remove();
+      
+      // Eliminar celdas en cada fila
+      table.querySelectorAll('tr').forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length > 12) tds[tds.length-1].remove();
+      });
+    });
+  });
+  
+  element.appendChild(semestersContainer);
+  
+  // Si hay plan de estudios, clonarlo también
+  if (planEstudiosGenerated) {
+    const planContainer = document.getElementById('plan-estudios-container').cloneNode(true);
+    // Eliminar columna Eliminar de la tabla de plan de estudios
+    planContainer.querySelectorAll('table').forEach(table => {
+      const ths = table.querySelectorAll('th');
+      if (ths.length > 12) ths[ths.length-1].remove();
+      
+      table.querySelectorAll('tr').forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length > 12) tds[tds.length-1].remove();
+      });
+    });
+    element.appendChild(planContainer);
+  }
+  
+  // Si hay componentes, clonarlos también
+  if (componentesGenerated) {
+    const compContainer = document.getElementById('componentes-container').cloneNode(true);
+    element.appendChild(compContainer);
+  }
+  
+  // Configuración para html2pdf
+  const opt = {
+    margin: 10,
+    filename: 'reporte_creditos.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: document.getElementById('tabla-1').scrollWidth,
+      useCORS: true
+    },
+    jsPDF: { 
+      unit: 'mm',
+      format: 'a3',
+      orientation: 'landscape'
+    }
+  };
+
+  // Mostrar mensaje de espera
+  showAlert("Generando PDF...", "success");
+  
+  // Generar el PDF
+  html2pdf().set(opt).from(element).save().then(() => {
+    showAlert("PDF descargado correctamente.", "success");
+  });
+}
+
+function downloadAll() {
+  downloadExcel();
+  setTimeout(downloadPDF, 1000);
+}
+
+// Función para guardar el progreso
+function saveProgress() {
+  const data = {
+    semesterCount: semesterCount,
+    semesterTables: [],
+    rowIndex: rowIndex
+  };
+  
+  // Recopilar datos de cada semestre
+  semesterTables.forEach(semester => {
+    const semesterData = {
+      id: semester.id,
+      generated: semester.generated,
+      weeks: document.getElementById(`weeks-${semester.id}`).value,
+      rows: []
+    };
+    
+    // Recopilar datos de cada fila
+    const tbody = semester.table.querySelector('tbody');
+    tbody.querySelectorAll("tr").forEach(row => {
+      if (!row.id || !row.id.includes(`row-${semester.id}-`)) return;
+      
+      const inputs = row.querySelectorAll('input, textarea, select');
+      const rowData = {
+        codigo: inputs[0].value,
+        nombre: inputs[1].value,
+        creditos: inputs[2].value,
+        t: inputs[3].value,
+        p: inputs[4].value,
+        componente: inputs[5].value,
+        requisito: inputs[6].value
+      };
+      
+      semesterData.rows.push(rowData);
+    });
+    
+    data.semesterTables.push(semesterData);
+  });
+  
+  // Crear y descargar archivo JSON
+  const json = JSON.stringify(data);
+  const blob = new Blob([json], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'progreso_plan_estudios.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  showAlert("Progreso guardado correctamente.", "success");
+}
+
+// Función para cargar el progreso
+function loadProgress(files) {
+  if (files.length === 0) return;
+  
+  const file = files[0];
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      // Limpiar semestres existentes
+      semesterTables = [];
+      semesterCount = 0;
+      rowIndex = data.rowIndex || 0;
+      document.getElementById('semesters-container').innerHTML = '';
+      
+      // Ocultar plan de estudios y componentes
+      document.getElementById('plan-estudios-container').style.display = 'none';
+      document.getElementById('componentes-container').style.display = 'none';
+      planEstudiosGenerated = false;
+      componentesGenerated = false;
+      
+      // Recrear semestres
+      data.semesterTables.forEach(semesterData => {
+        semesterCount = semesterData.id;
+        
+        const semestersContainer = document.getElementById('semesters-container');
+        
+        // Crear contenedor del semestre
+        const semesterDiv = document.createElement('div');
+        semesterDiv.className = 'semester-container';
+        semesterDiv.id = `semester-${semesterData.id}`;
+        
+        // Agregar título del semestre
+        const title = document.createElement('div');
+        title.className = 'semester-title';
+        title.textContent = `Semestre ${semesterData.id}`;
+        semesterDiv.appendChild(title);
+        
+        // Agregar selector de semanas
+        const weeksSelector = document.createElement('div');
+        weeksSelector.className = 'weeks-selector';
+        weeksSelector.innerHTML = `
+          <label for="weeks-${semesterData.id}">Período Académico (semanas): </label>
+          <div class="tooltip-container">
+            <select id="weeks-${semesterData.id}" class="weeks-input">
+              <option value="16" ${semesterData.weeks === '16' ? 'selected' : ''}>16 semanas</option>
+              <option value="18" ${semesterData.weeks === '18' ? 'selected' : ''}>18 semanas</option>
+            </select>
+            <span class="tooltip">Número de semanas del período académico (16 o 18 semanas por semestre)</span>
+          </div>
+        `;
+        semesterDiv.appendChild(weeksSelector);
+        
+        // Crear tabla para el semestre
+        const table = document.createElement('table');
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Código Asignatura</th>
+              <th>Asignatura</th>
+              <th>Crédito</th>
+              <th>T</th>
+              <th>P</th>
+              <th>Componente</th>
+              <th>HT Sem</th>
+              <th>HP Sem</th>
+              <th>HCI</th>
+              <th>HTS</th>
+              <th>Requisito</th>
+              <th>Crédito Val.</th>
+              <th>Eliminar</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+        table.id = `tabla-${semesterData.id}`;
+        semesterDiv.appendChild(table);
+        
+        // Agregar botones del semestre
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.style.textAlign = 'center';
+        buttonsDiv.innerHTML = `
+          <button onclick="addRow(${semesterData.id})">Agregar nueva materia</button>
+          <button onclick="generateSemester(${semesterData.id})">Generar semestre</button>
+          <button onclick="calculateAll(${semesterData.id})">Calcular</button>
+          <button onclick="deleteSemester(${semesterData.id})" class="delete-semester-btn">Eliminar Semestre</button>
+        `;
+        
+        // Si el semestre estaba generado, añadir botón de edición
+        if (semesterData.generated) {
+          const editButton = document.createElement('button');
+          editButton.className = 'edit-button';
+          editButton.textContent = 'Editar Semestre';
+          editButton.onclick = () => toggleEditMode(semesterData.id);
+          buttonsDiv.appendChild(editButton);
+        }
+        
+        semesterDiv.appendChild(buttonsDiv);
+        
+        // Agregar semestre al contenedor
+        semestersContainer.appendChild(semesterDiv);
+        
+        // Guardar referencia a la tabla
+        const semesterObj = {
+          id: semesterData.id,
+          table: table,
+          generated: semesterData.generated,
+          totalRow: null
+        };
+        
+        semesterTables.push(semesterObj);
+        
+        // Agregar filas al semestre
+        semesterData.rows.forEach(rowData => {
+          const tbody = table.querySelector('tbody');
+          const row = tbody.insertRow();
+          row.id = `row-${semesterData.id}-${++rowIndex}`;
+          row.innerHTML = `
+            <td class="highlight">
+              <div class="tooltip-container">
+                <input type="text" value="${rowData.codigo}" placeholder="Opcional">
+                <span class="tooltip">Código de la asignatura (opcional)</span>
+              </div>
+            </td>
+            <td class="highlight">
+              <div class="tooltip-container">
+                <textarea rows="2">${rowData.nombre}</textarea>
+                <span class="tooltip">Nombre completo de la asignatura según el plan de estudios</span>
+              </div>
+            </td>
+            <td class="highlight">
+              <div class="tooltip-container">
+                <input type="number" value="${rowData.creditos}">
+                <span class="tooltip">Número de créditos académicos de la asignatura (1 crédito = 48 horas totales de trabajo)</span>
+              </div>
+            </td>
+            <td class="highlight">
+              <div class="tooltip-container">
+                <input type="number" value="${rowData.t}">
+                <span class="tooltip">Asignar creditos Teoricos para la asignatura (T)</span>
+              </div>
+            </td>
+            <td class="highlight">
+              <div class="tooltip-container">
+                <input type="number" value="${rowData.p}">
+                <span class="tooltip">asignar creditos practicos para la asignatura (P).</span>
+              </div>
+            </td>
+            <td class="highlight">
+              <div class="tooltip-container">
+                <select>
+                  <option value="CSH" ${rowData.componente === 'CSH' ? 'selected' : ''}>CSH</option>
+                  <option value="CFB" ${rowData.componente === 'CFB' ? 'selected' : ''}>CFB</option>
+                  <option value="CFP" ${rowData.componente === 'CFP' ? 'selected' : ''}>CFP</option>
+                  <option value="CP" ${rowData.componente === 'CP' ? 'selected' : ''}>CP</option>
+                </select>
+                <span class="tooltip">Seleccione el componente de formación de la asignatura</span>
+              </div>
+            </td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td class="highlight">
+              <div class="tooltip-container">
+                <input type="text" value="${rowData.requisito || ''}" placeholder="Opcional">
+                <span class="tooltip">Requisitos de la asignatura (opcional)</span>
+              </div>
+            </td>
+            <td class="val"></td>
+            <td><button onclick="deleteRow(this, ${semesterData.id})">❌</button></td>
+          `;
+          row.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('input', () => calculateRow(row, semesterData.id));
+          });
+          calculateRow(row, semesterData.id);
+        });
+        
+        // Si el semestre estaba generado, regenerarlo
+        if (semesterData.generated) {
+          generateSemester(semesterData.id);
+        }
+      });
+      
+      // Actualizar contador de semestres
+      semesterCount = Math.max(...semesterTables.map(s => s.id), 0);
+      
+      // Actualizar visibilidad del botón de Plan de Estudios
+      document.getElementById('calculate-plan-btn').style.display = semesterCount > 1 ? 'inline-block' : 'none';
+      
+      showAlert("Progreso cargado correctamente.", "success");
+      updateFechaGeneracion();
+      
+    } catch (error) {
+      console.error("Error al cargar el archivo:", error);
+      showAlert("Error al cargar el archivo. Verifique que sea un archivo válido.", "error");
+    }
+  };
+  
+  reader.readAsText(file);
+}
+
+// Actualizar fecha al cargar (pero no iniciar semestre automáticamente)
+window.onload = function() {
+  updateFechaGeneracion();
+};
+</script>
+</body>
+</html>
