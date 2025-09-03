@@ -412,13 +412,7 @@
     <label for="load-file">Cargar progreso guardado</label>
     <input type="file" id="load-file" accept=".json" onchange="loadProgress(this.files)">
   </div>
-  
-  <div class="footer">
-    Ing Andres Narvaez, &copy todos los derechos reservados. 2025
-  </div>
-</div>
 
-<!-- Contenido principal (oculto inicialmente) -->
 <div class="container" id="main-content" style="display: none;">
   <h2>Universidad de Pamplona<br>Reporte de Créditos Académicos</h2>
   <div id="fechaGeneracion"></div>
@@ -431,15 +425,15 @@
   </div>
   
   <div id="semesters-container">
-    <!-- Los semestres se agregarán aquí dinámicamente -->
+
   </div>
 
   <div id="plan-estudios-container" class="plan-estudios-container" style="display:none">
-    <!-- El resumen del plan de estudios aparecerá aquí -->
+
   </div>
   
   <div id="componentes-container" class="componentes-container" style="display:none">
-    <!-- El resumen de componentes aparecerá aquí -->
+
   </div>
 
   <div style="text-align:center" id="main-buttons">
@@ -447,7 +441,7 @@
     <button onclick="calculatePlanEstudios()" id="calculate-plan-btn" style="display:none">Calcular Plan de Estudios</button>
   </div>
 
-  <!-- SECCIÓN DE LEYENDAS (solo para web) -->
+
   <div id="leyendas-container" class="leyendas-container">
     <h3>Instrucciones:</h3>
     <p>Tenga en cuenta las sugerencias de cada celda. Para realizar el cálculo de horas académicas, digite la cantidad de créditos según sea el caso, teóricos y/o prácticos en la casilla de color amarillo. Seleccione el período académico para los casos especiales diferentes a 16 semanas.</p>
@@ -1699,5 +1693,6 @@ window.onload = function() {
 </script>
 </body>
 </html>
+
 
 
