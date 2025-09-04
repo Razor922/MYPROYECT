@@ -238,7 +238,7 @@
         columns: 1;
       }
     }
-  
+    /* Estilos para la pantalla de inicio */
     #splash-screen {
       position: fixed;
       top: 0;
@@ -324,7 +324,7 @@
     file-buttons label:hover {
       background-color: #3e8e41;
     }
-  
+    /* Estilos para la alerta personalizada */
     .custom-alert {
       display: none;
       position: fixed;
@@ -387,7 +387,7 @@
   </style>
 </head>
 <body>
-
+<!-- Pantalla de inicio -->
 <div id="splash-screen">
   <h1>UNIVERSIDAD DE PAMPLONA</h1>
   <h2>Oficina de Autoevaluación y Acreditación Institucional</h2>
@@ -411,8 +411,9 @@
   <div class="file-buttons">
     <label for="load-file">Cargar progreso guardado</label>
     <input type="file" id="load-file" accept=".json" onchange="loadProgress(this.files)">
-  </div>
+  
 
+<!-- Contenido principal (oculto inicialmente) -->
 <div class="container" id="main-content" style="display: none;">
   <h2>Universidad de Pamplona<br>Reporte de Créditos Académicos</h2>
   <div id="fechaGeneracion"></div>
@@ -425,15 +426,15 @@
   </div>
   
   <div id="semesters-container">
-
+    <!-- Los semestres se agregarán aquí dinámicamente -->
   </div>
 
   <div id="plan-estudios-container" class="plan-estudios-container" style="display:none">
-
+    <!-- El resumen del plan de estudios aparecerá aquí -->
   </div>
   
   <div id="componentes-container" class="componentes-container" style="display:none">
-
+    <!-- El resumen de componentes aparecerá aquí -->
   </div>
 
   <div style="text-align:center" id="main-buttons">
@@ -441,7 +442,7 @@
     <button onclick="calculatePlanEstudios()" id="calculate-plan-btn" style="display:none">Calcular Plan de Estudios</button>
   </div>
 
-
+  <!-- SECCIÓN DE LEYENDAS (solo para web) -->
   <div id="leyendas-container" class="leyendas-container">
     <h3>Instrucciones:</h3>
     <p>Tenga en cuenta las sugerencias de cada celda. Para realizar el cálculo de horas académicas, digite la cantidad de créditos según sea el caso, teóricos y/o prácticos en la casilla de color amarillo. Seleccione el período académico para los casos especiales diferentes a 16 semanas.</p>
@@ -463,7 +464,7 @@
   </div>
 </div>
 
-
+<!-- Alerta personalizada para cierre de pestaña -->
 <div class="custom-alert" id="closeAlert">
   <div class="alert-content">
     <h2>¿Estás seguro de que quieres salir?</h2>
@@ -482,6 +483,7 @@ let semesterCount = 0;
 let semesterTables = [];
 let planEstudiosGenerated = false;
 let componentesGenerated = false;
+
 
 
 
@@ -504,10 +506,10 @@ window.addEventListener('beforeunload', function (e) {
 
 
 function handleSaveAndExit() {
-
+  
     saveProgress();
     showCustomAlert = false;
-
+   
     window.close();
 }
 
@@ -518,19 +520,20 @@ function handleExitOnly() {
     window.close();
 }
 
-  
+
 function handleCancel() {
     document.getElementById('closeAlert').style.display = 'none';
 }
 
-
+// También mostrar la alerta personalizada cuando se intenta cerrar con atajos de teclado
 document.addEventListener('keydown', function(event) {
-  
+    // Detectar Ctrl + W o Ctrl + F4 (cerrar pestaña)
     if ((event.ctrlKey && event.key === 'w') || (event.ctrlKey && event.key === 'F4')) {
         event.preventDefault();
         showCloseAlert();
     }
 });
+
 
 
 
@@ -566,13 +569,12 @@ function addNewSemester() {
   semesterDiv.className = 'semester-container';
   semesterDiv.id = `semester-${semesterCount}`;
   
- 
+
   const title = document.createElement('div');
   title.className = 'semester-title';
   title.textContent = `Semestre ${semesterCount}`;
   semesterDiv.appendChild(title);
-  
-
+ 
   const weeksSelector = document.createElement('div');
   weeksSelector.className = 'weeks-selector';
   weeksSelector.innerHTML = `
@@ -587,7 +589,7 @@ function addNewSemester() {
   `;
   semesterDiv.appendChild(weeksSelector);
   
-
+  // Crear tabla para el semestre con nueva columna de Componente y Requisito
   const table = document.createElement('table');
   table.innerHTML = `
     <thead>
@@ -612,7 +614,7 @@ function addNewSemester() {
   table.id = `tabla-${semesterCount}`;
   semesterDiv.appendChild(table);
   
-
+ 
   const buttonsDiv = document.createElement('div');
   buttonsDiv.style.textAlign = 'center';
   buttonsDiv.innerHTML = `
@@ -622,10 +624,11 @@ function addNewSemester() {
     <button onclick="deleteSemester(${semesterCount})" class="delete-semester-btn">Eliminar Semestre</button>
   `;
   semesterDiv.appendChild(buttonsDiv);
+  
 
   semestersContainer.appendChild(semesterDiv);
   
- 
+
   semesterTables.push({
     id: semesterCount,
     table: table,
@@ -635,7 +638,7 @@ function addNewSemester() {
   
   showAlert(`Semestre ${semesterCount} creado. Agrega materias.`, "success");
   
-
+ 
   if (semesterCount > 1) {
     document.getElementById('calculate-plan-btn').style.display = 'inline-block';
   }
@@ -650,7 +653,7 @@ function deleteSemester(semesterId) {
   }
   
   if (confirm(`¿Está seguro que desea eliminar el Semestre ${semesterId}? Esta acción no se puede deshacer.`)) {
-
+    // Eliminar el semestre del DOM
     const semesterDiv = document.getElementById(`semester-${semesterId}`);
     if (semesterDiv) {
       semesterDiv.remove();
@@ -661,14 +664,15 @@ function deleteSemester(semesterId) {
     if (index !== -1) {
       semesterTables.splice(index, 1);
     }
-
+    
+  
     const remainingSemesters = document.querySelectorAll('.semester-container');
     remainingSemesters.forEach((semester, i) => {
       const newId = i + 1;
       semester.id = `semester-${newId}`;
       semester.querySelector('.semester-title').textContent = `Semestre ${newId}`;
       
-  
+
       const buttons = semester.querySelectorAll('button');
       buttons[0].setAttribute('onclick', `addRow(${newId})`);
       buttons[1].setAttribute('onclick', `generateSemester(${newId})`);
@@ -684,10 +688,11 @@ function deleteSemester(semesterId) {
     
 
     semesterCount = semesterTables.length;
- 
+    
+   
     document.getElementById('calculate-plan-btn').style.display = semesterCount > 1 ? 'inline-block' : 'none';
     
- 
+
     if (planEstudiosGenerated) {
       document.getElementById('plan-estudios-container').style.display = 'none';
       planEstudiosGenerated = false;
@@ -822,9 +827,9 @@ function deleteRow(button, semesterId) {
   row.remove();
   showAlert("Fila eliminada.", "success");
   
-  // Si hay fila de resumen, recalcularla
+
   if (semester.generated && semester.totalRow) {
-    // Si era la última fila, quitar el estado de generado
+
     const tbody = semester.table.querySelector('tbody');
     const materiaRows = tbody.querySelectorAll("tr[id^='row-']");
     if (materiaRows.length === 0) {
@@ -833,7 +838,7 @@ function deleteRow(button, semesterId) {
       semester.totalRow = null;
       document.getElementById(`semester-${semesterId}`).classList.remove('edit-mode');
       
-      // Eliminar botón de edición si existe
+   
       const editButton = document.querySelector(`#semester-${semesterId} .edit-button`);
       if (editButton) editButton.remove();
     } else {
@@ -851,7 +856,7 @@ function generateSemester(semesterId) {
   
   semester.generated = true;
   
-  // Eliminar filas de resumen existentes si las hay
+ 
   const tbody = semester.table.querySelector('tbody');
   const existingSummaryRows = tbody.querySelectorAll('.resumen-row, .hcd-row');
   existingSummaryRows.forEach(row => row.remove());
@@ -922,21 +927,22 @@ function toggleEditMode(semesterId) {
   const semester = semesterTables.find(s => s.id === semesterId);
   
   if (semesterDiv.classList.contains('edit-mode')) {
-
+ 
     semesterDiv.classList.remove('edit-mode');
 
     generateSemester(semesterId);
     showAlert("Modo edición desactivado. Semestre regenerado.", "success");
   } else {
-
+   
     semesterDiv.classList.add('edit-mode');
     semester.generated = false;
-
+    
+ 
     const tbody = semester.table.querySelector('tbody');
     const existingSummaryRows = tbody.querySelectorAll('.resumen-row, .hcd-row');
     existingSummaryRows.forEach(row => row.remove());
     
-
+   
     const editButton = document.querySelector(`#semester-${semesterId} .edit-button`);
     if (editButton) editButton.remove();
     
@@ -1060,17 +1066,17 @@ function calculateComponentes() {
     'CFP': { count: 0, creditos: 0 },
     'CP': { count: 0, creditos: 0 }
   };
- 
+  
+
   semesterTables.forEach(semester => {
     const tbody = semester.table.querySelector('tbody');
-    
 
     const materiasRows = Array.from(tbody.querySelectorAll("tr")).filter(row => 
       row.id && row.id.includes(`row-${semester.id}-`)
     );
     
     materiasRows.forEach(row => {
-
+   
       const inputs = row.querySelectorAll('input');
       
 
@@ -1079,7 +1085,7 @@ function calculateComponentes() {
       if (componenteSelect && inputs.length >= 5) {
         const componente = componenteSelect.value;
         
-      
+     
         const creditosTotales = parseFloat(inputs[1].value) || 0;
         
         if (componentes[componente]) {
@@ -1093,6 +1099,7 @@ function calculateComponentes() {
 
   const totalAsignaturas = Object.values(componentes).reduce((sum, c) => sum + c.count, 0);
   const totalCreditos = Object.values(componentes).reduce((sum, c) => sum + c.creditos, 0);
+  
 
   const table = document.createElement('table');
   table.innerHTML = `
@@ -1133,7 +1140,7 @@ function validateBeforeExport() {
 
   recalculateAll();
   
-
+ 
   const allGenerated = semesterTables.every(s => s.generated);
   if (!allGenerated) {
     showAlert("Todos los semestres deben estar generados primero.", "error");
@@ -1185,7 +1192,8 @@ function downloadExcel() {
 
   semesterTables.forEach(semester => {
     const tableCopy = semester.table.cloneNode(true);
-
+    
+  
     const ths = tableCopy.querySelectorAll('th');
     if (ths.length > 12) ths[ths.length-1].remove();
     
@@ -1194,7 +1202,7 @@ function downloadExcel() {
       if (tds.length > 12) tds[tds.length-1].remove();
     });
     
-
+   
     const inputs = tableCopy.querySelectorAll('input, textarea, select');
     inputs.forEach(input => {
       const td = input.parentElement.parentElement;
@@ -1209,7 +1217,7 @@ function downloadExcel() {
 
     const ws = XLSX.utils.table_to_sheet(tableCopy);
     
-
+   
     const range = XLSX.utils.decode_range(ws['!ref']);
     for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -1228,7 +1236,7 @@ function downloadExcel() {
           alignment: { horizontal: "center", vertical: "center" }
         };
         
-     
+    
         if (R === 0) {
           ws[cell_ref].s.fill = {fgColor: {rgb: "AD3333"}};
           ws[cell_ref].s.font = {color: {rgb: "FFFFFF"}, bold: true};
@@ -1246,9 +1254,10 @@ function downloadExcel() {
     XLSX.utils.book_append_sheet(wb, ws, `Semestre ${semester.id}`);
   });
   
-
+ 
   if (planEstudiosGenerated) {
     const planTable = document.querySelector('.plan-estudios-container table').cloneNode(true);
+    
 
     const ths = planTable.querySelectorAll('th');
     if (ths.length > 12) ths[ths.length-1].remove();
@@ -1315,13 +1324,13 @@ function downloadExcel() {
           alignment: { horizontal: "center", vertical: "center" }
         };
         
-    
+   
         if (R === 0) {
           ws[cell_ref].s.fill = {fgColor: {rgb: "4CAF50"}};
           ws[cell_ref].s.font = {color: {rgb: "FFFFFF"}, bold: true};
         }
         
-
+    
         if (R === range.e.r) {
           ws[cell_ref].s.fill = {fgColor: {rgb: "F0F0F0"}};
           ws[cell_ref].s.font = {bold: true};
@@ -1356,20 +1365,20 @@ function downloadPDF() {
   date.style.marginBottom = '20px';
   element.appendChild(date);
   
-
+ 
   const semestersContainer = document.getElementById('semesters-container').cloneNode(true);
   
+
   semestersContainer.querySelectorAll('.semester-container').forEach(semester => {
 
     semester.querySelectorAll('button').forEach(btn => btn.remove());
     
 
     semester.querySelectorAll('table').forEach(table => {
-  
+      // Eliminar encabezado
       const ths = table.querySelectorAll('th');
       if (ths.length > 12) ths[ths.length-1].remove();
-      
-
+     
       table.querySelectorAll('tr').forEach(tr => {
         const tds = tr.querySelectorAll('td');
         if (tds.length > 12) tds[tds.length-1].remove();
@@ -1378,6 +1387,7 @@ function downloadPDF() {
   });
   
   element.appendChild(semestersContainer);
+  
 
   if (planEstudiosGenerated) {
     const planContainer = document.getElementById('plan-estudios-container').cloneNode(true);
@@ -1393,6 +1403,7 @@ function downloadPDF() {
     });
     element.appendChild(planContainer);
   }
+  
 
   if (componentesGenerated) {
     const compContainer = document.getElementById('componentes-container').cloneNode(true);
@@ -1449,7 +1460,7 @@ function saveProgress() {
       rows: []
     };
     
-
+ 
     const tbody = semester.table.querySelector('tbody');
     tbody.querySelectorAll("tr").forEach(row => {
       if (!row.id || !row.id.includes(`row-${semester.id}-`)) return;
@@ -1502,18 +1513,20 @@ function loadProgress(files) {
       semesterCount = 0;
       rowIndex = data.rowIndex || 0;
       document.getElementById('semesters-container').innerHTML = '';
+      
      
       document.getElementById('plan-estudios-container').style.display = 'none';
       document.getElementById('componentes-container').style.display = 'none';
       planEstudiosGenerated = false;
       componentesGenerated = false;
+      
 
       data.semesterTables.forEach(semesterData => {
         semesterCount = semesterData.id;
         
         const semestersContainer = document.getElementById('semesters-container');
         
-   
+
         const semesterDiv = document.createElement('div');
         semesterDiv.className = 'semester-container';
         semesterDiv.id = `semester-${semesterData.id}`;
@@ -1523,7 +1536,8 @@ function loadProgress(files) {
         title.className = 'semester-title';
         title.textContent = `Semestre ${semesterData.id}`;
         semesterDiv.appendChild(title);
- 
+        
+        
         const weeksSelector = document.createElement('div');
         weeksSelector.className = 'weeks-selector';
         weeksSelector.innerHTML = `
@@ -1538,7 +1552,7 @@ function loadProgress(files) {
         `;
         semesterDiv.appendChild(weeksSelector);
         
-
+    
         const table = document.createElement('table');
         table.innerHTML = `
           <thead>
@@ -1563,7 +1577,7 @@ function loadProgress(files) {
         table.id = `tabla-${semesterData.id}`;
         semesterDiv.appendChild(table);
         
-   
+       
         const buttonsDiv = document.createElement('div');
         buttonsDiv.style.textAlign = 'center';
         buttonsDiv.innerHTML = `
@@ -1573,7 +1587,7 @@ function loadProgress(files) {
           <button onclick="deleteSemester(${semesterData.id})" class="delete-semester-btn">Eliminar Semestre</button>
         `;
         
-
+  
         if (semesterData.generated) {
           const editButton = document.createElement('button');
           editButton.className = 'edit-button';
@@ -1583,10 +1597,10 @@ function loadProgress(files) {
         }
         
         semesterDiv.appendChild(buttonsDiv);
-        
 
         semestersContainer.appendChild(semesterDiv);
-
+        
+    
         const semesterObj = {
           id: semesterData.id,
           table: table,
@@ -1596,7 +1610,7 @@ function loadProgress(files) {
         
         semesterTables.push(semesterObj);
         
-
+        // Agregar filas al semestre
         semesterData.rows.forEach(rowData => {
           const tbody = table.querySelector('tbody');
           const row = tbody.insertRow();
@@ -1662,16 +1676,16 @@ function loadProgress(files) {
           calculateRow(row, semesterData.id);
         });
         
-  
+     
         if (semesterData.generated) {
           generateSemester(semesterData.id);
         }
       });
       
-
+   
       semesterCount = Math.max(...semesterTables.map(s => s.id), 0);
       
-     
+    
       document.getElementById('calculate-plan-btn').style.display = semesterCount > 1 ? 'inline-block' : 'none';
       
       showAlert("Progreso cargado correctamente.", "success");
@@ -1693,6 +1707,4 @@ window.onload = function() {
 </script>
 </body>
 </html>
-
-
 
