@@ -948,16 +948,43 @@ function toggleEditMode(semesterId) {
 }
 
 function recalculateAll() {
-
-  semesterTables.forEach(semester => {
-    if (semester.generated) {
+  // 1) Recalcular SIEMPRE todos los semestres en orden (del primero al último)
+  //    sin importar si estaban generados o no, para que el resumen quede actualizado
+  //    con cualquier cambio (semanas, créditos, componentes, etc.)
+  semesterTables
+    .slice()
+    .sort((a, b) => a.id - b.id)
+    .forEach(semester => {
+      // Refrescar cada fila de materias con los valores actuales
+      const tbody = semester.table.querySelector('tbody');
+      tbody.querySelectorAll("tr").forEach(row => {
+        if (!row.id || !row.id.includes(`row-${semester.id}-`)) return;
+        calculateRow(row, semester.id);
+      });
+      // Regenerar el semestre (crea/actualiza la fila de resumen)
       generateSemester(semester.id);
-    }
-  });
-  
+    });
 
-  if (semesterTables.length > 1 && planEstudiosGenerated) {
+  // 2) Recalcular SIEMPRE el plan de estudios AL FINAL,
+  //    una vez todos los semestres están recalculados.
+  //    calculatePlanEstudios() internamente llama a calculateComponentes(),
+  //    por lo que los componentes también quedan actualizados.
+  if (semesterTables.length > 1) {
     calculatePlanEstudios();
+  } else {
+    // Si solo hay un semestre, ocultar/limpiar plan y componentes
+    const planContainer = document.getElementById('plan-estudios-container');
+    if (planContainer) {
+      planContainer.style.display = 'none';
+      planContainer.innerHTML = '';
+    }
+    const compContainer = document.getElementById('componentes-container');
+    if (compContainer) {
+      compContainer.style.display = 'none';
+      compContainer.innerHTML = '';
+    }
+    planEstudiosGenerated = false;
+    componentesGenerated = false;
   }
 }
 
