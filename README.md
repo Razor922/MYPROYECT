@@ -136,7 +136,7 @@ Consulta el archivo [`LICENSE`](./LICENSE) para más detalles.
 
 ## 👨‍💻 Autor
 
-**Ing. Andrés Narváez**
+**Ing. Andres Narvaez**
 Ingeniero mecatrónico
 Universidad de Pamplona
 
@@ -154,7 +154,7 @@ A la **Oficina de Autoevaluación y Acreditación Institucional** de la Universi
 
 <div align="center">
 
-**© 2025 — Ing. Andrés Narváez**
+**© 2025 — Ing. Andres Narvaez**
 **Universidad de Pamplona**
 Hecho con ❤️ para la comunidad académica.
 
