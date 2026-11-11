@@ -440,7 +440,7 @@
 
   <div style="text-align:center" id="main-buttons">
     <button onclick="addNewSemester()">Agregar nuevo semestre</button>
-    <button onclick="calculatePlanEstudios()" id="calculate-plan-btn" style="display:none">Calcular Plan de Estudios</button>
+    <button onclick="recalcularYCalcularPlan()" id="calculate-plan-btn" style="display:none">Calcular Plan de Estudios</button>
   </div>
 
   <!-- SECCIÓN DE LEYENDAS (solo para web) -->
@@ -947,6 +947,30 @@ function toggleEditMode(semesterId) {
   }
 }
 
+function recalcularYCalcularPlan() {
+  // 1) Recalcular SIEMPRE todos los semestres en orden (del primero al último)
+  //    para que el plan de estudios parta de datos actualizados.
+  semesterTables
+    .slice()
+    .sort((a, b) => a.id - b.id)
+    .forEach(semester => {
+      // Refrescar cada fila con los valores actuales de los inputs
+      const tbody = semester.table.querySelector('tbody');
+      tbody.querySelectorAll("tr").forEach(row => {
+        if (!row.id || !row.id.includes(`row-${semester.id}-`)) return;
+        calculateRow(row, semester.id);
+      });
+      // Regenerar el semestre (actualiza la fila de resumen con los valores actuales)
+      generateSemester(semester.id);
+    });
+
+  // 2) Si algún semestre quedó inválido tras el recálculo, generateSemester
+  //    ya mostró la alerta correspondiente y dejó generated = false.
+  //    calculatePlanEstudios() volverá a validar allGenerated y avisará.
+  // 3) Calcular el plan de estudios AL FINAL, con datos frescos.
+  calculatePlanEstudios();
+}
+  
 function recalculateAll() {
   // 1) Recalcular SIEMPRE todos los semestres en orden (del primero al último)
   //    sin importar si estaban generados o no, para que el resumen quede actualizado
